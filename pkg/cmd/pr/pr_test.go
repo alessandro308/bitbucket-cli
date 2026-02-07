@@ -13,12 +13,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/avivsinai/bitbucket-cli/internal/config"
-	"github.com/avivsinai/bitbucket-cli/pkg/bbcloud"
-	"github.com/avivsinai/bitbucket-cli/pkg/bbdc"
-	"github.com/avivsinai/bitbucket-cli/pkg/cmdutil"
-	"github.com/avivsinai/bitbucket-cli/pkg/iostreams"
-	"github.com/avivsinai/bitbucket-cli/pkg/types"
+	"github.com/alessandro308/bitbucket-cli/internal/config"
+	"github.com/alessandro308/bitbucket-cli/pkg/bbcloud"
+	"github.com/alessandro308/bitbucket-cli/pkg/bbdc"
+	"github.com/alessandro308/bitbucket-cli/pkg/cmdutil"
+	"github.com/alessandro308/bitbucket-cli/pkg/iostreams"
+	"github.com/alessandro308/bitbucket-cli/pkg/types"
 )
 
 func TestListRequiresMineWithoutRepo(t *testing.T) {

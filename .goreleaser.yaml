@@ -21,9 +21,9 @@ builds:
       - -trimpath
     ldflags:
       - -s -w
-      - -X github.com/avivsinai/bitbucket-cli/internal/build.versionFromLdflags={{.Version}}
-      - -X github.com/avivsinai/bitbucket-cli/internal/build.commitFromLdflags={{.Commit}}
-      - -X github.com/avivsinai/bitbucket-cli/internal/build.dateFromLdflags={{.Date}}
+      - -X github.com/alessandro308/bitbucket-cli/internal/build.versionFromLdflags={{.Version}}
+      - -X github.com/alessandro308/bitbucket-cli/internal/build.commitFromLdflags={{.Commit}}
+      - -X github.com/alessandro308/bitbucket-cli/internal/build.dateFromLdflags={{.Date}}
     mod_timestamp: '{{ .CommitTimestamp }}'
 
 archives:
@@ -92,7 +92,7 @@ release:
   footer: |
     ---
 
-    **Full Changelog**: https://github.com/avivsinai/bitbucket-cli/compare/{{ .PreviousTag }}...{{ .Tag }}
+    **Full Changelog**: https://github.com/alessandro308/bitbucket-cli/compare/{{ .PreviousTag }}...{{ .Tag }}
 
     ### Homebrew (macOS/Linux)
     ```bash
@@ -107,7 +107,7 @@ release:
 
     ### Go Install
     ```bash
-    go install github.com/avivsinai/bitbucket-cli/cmd/bkt@{{ .Tag }}
+    go install github.com/alessandro308/bitbucket-cli/cmd/bkt@{{ .Tag }}
     ```
 
     ### Binary Downloads
@@ -129,7 +129,7 @@ nfpms:
     formats: [deb]
     maintainer: Aviv Sinai <avivsinai@gmail.com>
     description: Bitbucket CLI
-    homepage: https://github.com/avivsinai/bitbucket-cli
+    homepage: https://github.com/alessandro308/bitbucket-cli
     license: MIT
 
 brews:
@@ -139,7 +139,7 @@ brews:
       name: homebrew-tap
       token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
     directory: Formula
-    homepage: https://github.com/avivsinai/bitbucket-cli
+    homepage: https://github.com/alessandro308/bitbucket-cli
     description: "CLI for Bitbucket Cloud - manage repos, PRs, and pipelines from the terminal"
     license: MIT
     commit_author:
@@ -157,7 +157,7 @@ scoops:
       name: scoop-bucket
       token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
     directory: bucket
-    homepage: https://github.com/avivsinai/bitbucket-cli
+    homepage: https://github.com/alessandro308/bitbucket-cli
     description: "CLI for Bitbucket Cloud & Data Center - manage repos, PRs, and pipelines"
     license: MIT
     commit_author:

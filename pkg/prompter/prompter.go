@@ -7,7 +7,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/avivsinai/bitbucket-cli/pkg/iostreams"
+	"github.com/alessandro308/bitbucket-cli/pkg/iostreams"
 	"golang.org/x/term"
 )
 

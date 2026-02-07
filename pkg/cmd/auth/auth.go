@@ -13,13 +13,13 @@ import (
 	"github.com/spf13/cobra"
 	"golang.org/x/term"
 
-	"github.com/avivsinai/bitbucket-cli/internal/config"
-	"github.com/avivsinai/bitbucket-cli/internal/secret"
-	"github.com/avivsinai/bitbucket-cli/pkg/bbcloud"
-	"github.com/avivsinai/bitbucket-cli/pkg/bbdc"
-	"github.com/avivsinai/bitbucket-cli/pkg/cmdutil"
-	"github.com/avivsinai/bitbucket-cli/pkg/httpx"
-	"github.com/avivsinai/bitbucket-cli/pkg/iostreams"
+	"github.com/alessandro308/bitbucket-cli/internal/config"
+	"github.com/alessandro308/bitbucket-cli/internal/secret"
+	"github.com/alessandro308/bitbucket-cli/pkg/bbcloud"
+	"github.com/alessandro308/bitbucket-cli/pkg/bbdc"
+	"github.com/alessandro308/bitbucket-cli/pkg/cmdutil"
+	"github.com/alessandro308/bitbucket-cli/pkg/httpx"
+	"github.com/alessandro308/bitbucket-cli/pkg/iostreams"
 )
 
 // CloudTokenURL is the URL where users create Bitbucket Cloud API tokens.

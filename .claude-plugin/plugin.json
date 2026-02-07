@@ -5,7 +5,7 @@
     "name": "Aviv Sinai",
     "url": "https://github.com/avivsinai"
   },
-  "repository": "https://github.com/avivsinai/bitbucket-cli",
+  "repository": "https://github.com/alessandro308/bitbucket-cli",
   "license": "MIT",
   "skills": "./skills/",
   "keywords": ["bitbucket", "git", "pr", "pull-request", "ci", "pipeline", "devops", "cli", "datacenter", "cloud"]

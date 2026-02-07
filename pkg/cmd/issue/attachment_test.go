@@ -5,9 +5,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/avivsinai/bitbucket-cli/internal/config"
-	"github.com/avivsinai/bitbucket-cli/pkg/cmdutil"
-	"github.com/avivsinai/bitbucket-cli/pkg/iostreams"
+	"github.com/alessandro308/bitbucket-cli/internal/config"
+	"github.com/alessandro308/bitbucket-cli/pkg/cmdutil"
+	"github.com/alessandro308/bitbucket-cli/pkg/iostreams"
 )
 
 func newTestFactory() *cmdutil.Factory {
