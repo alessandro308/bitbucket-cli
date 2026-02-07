@@ -1,8 +1,8 @@
 ---
 name: bkt
-version: 1.0.4
-description: Bitbucket CLI for Data Center and Cloud. Use when users need to manage repositories, pull requests, branches, issues, webhooks, or pipelines in Bitbucket. Triggers include "bitbucket", "bkt", "pull request", "PR", "repo list", "branch create", "Bitbucket Data Center", "Bitbucket Cloud".
+description: Bitbucket CLI for Data Center and Cloud. Use when users need to manage repositories, pull requests, branches, issues, webhooks, or pipelines in Bitbucket. Supports inline PR comments on specific file lines (Cloud only). Triggers include "bitbucket", "bkt", "pull request", "PR", "repo list", "branch create", "inline comment", "file comment", "Bitbucket Data Center", "Bitbucket Cloud".
 metadata:
+  version: 1.0.5
   short-description: Bitbucket CLI for repos, PRs, branches
   compatibility: claude-code, codex-cli
 ---
@@ -117,6 +117,8 @@ bkt pr edit 123 --title "New title" --body "Updated description"
 # Review and merge
 bkt pr approve 42
 bkt pr comment 42 --text "LGTM"
+bkt pr comment 42 --text "Fix typo" --file src/main.go --line 42                    # Cloud: Inline comment on line
+bkt pr comment 42 --text "Refactor" --file app.js --line-from 10 --line 20          # Cloud: Line range comment
 bkt pr merge 42 --message "merge: feature/cache"
 bkt pr merge 42 --strategy fast-forward
 

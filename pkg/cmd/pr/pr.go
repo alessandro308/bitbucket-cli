@@ -1157,9 +1157,13 @@ func runMerge(cmd *cobra.Command, f *cmdutil.Factory, id int, opts *mergeOptions
 }
 
 type commentOptions struct {
-	Project string
-	Repo    string
-	Text    string
+	Project   string
+	Workspace string
+	Repo      string
+	Text      string
+	FilePath  string
+	Line      int
+	LineFrom  int
 }
 
 func newCommentCmd(f *cmdutil.Factory) *cobra.Command {
@@ -1167,19 +1171,50 @@ func newCommentCmd(f *cmdutil.Factory) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "comment <id> --text <message>",
 		Short: "Comment on a pull request",
-		Args:  cobra.ExactArgs(1),
+		Long: `Comment on a pull request.
+
+For Bitbucket Cloud, you can create inline comments on specific file lines using --file and --line flags.
+Use --line-from to specify a line range for the comment.`,
+		Example: `  # Add a general comment
+  bkt pr comment 123 --text "Looks good!"
+
+  # Add an inline comment on a specific line (Cloud only)
+  bkt pr comment 123 --text "Fix this typo" --file src/main.go --line 42
+
+  # Add an inline comment on a line range (Cloud only)
+  bkt pr comment 123 --text "Refactor this block" --file src/main.go --line-from 10 --line 20`,
+		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			id, err := strconv.Atoi(args[0])
 			if err != nil {
 				return fmt.Errorf("invalid pull request id %q", args[0])
 			}
+
+			// Validate inline comment flags
+			if opts.FilePath != "" && opts.Line <= 0 {
+				return fmt.Errorf("--line is required when --file is specified")
+			}
+			if opts.Line > 0 && opts.FilePath == "" {
+				return fmt.Errorf("--file is required when --line is specified")
+			}
+			if opts.LineFrom > 0 && opts.FilePath == "" {
+				return fmt.Errorf("--file is required when --line-from is specified")
+			}
+			if opts.LineFrom > 0 && opts.Line <= 0 {
+				return fmt.Errorf("--line is required when --line-from is specified")
+			}
+
 			return runComment(cmd, f, id, opts)
 		},
 	}
 
 	cmd.Flags().StringVar(&opts.Project, "project", "", "Bitbucket project key override")
+	cmd.Flags().StringVar(&opts.Workspace, "workspace", "", "Bitbucket workspace override (Cloud)")
 	cmd.Flags().StringVar(&opts.Repo, "repo", "", "Repository slug override")
 	cmd.Flags().StringVar(&opts.Text, "text", "", "Comment text")
+	cmd.Flags().StringVar(&opts.FilePath, "file", "", "File path for inline comment (Cloud only)")
+	cmd.Flags().IntVar(&opts.Line, "line", 0, "Line number for inline comment (Cloud only, requires --file)")
+	cmd.Flags().IntVar(&opts.LineFrom, "line-from", 0, "Starting line for range comment (Cloud only, requires --file and --line)")
 	_ = cmd.MarkFlagRequired("text")
 
 	return cmd
@@ -1196,32 +1231,85 @@ func runComment(cmd *cobra.Command, f *cmdutil.Factory, id int, opts *commentOpt
 	if err != nil {
 		return err
 	}
-	if host.Kind != "dc" {
-		return fmt.Errorf("pr comment currently supports Data Center contexts only")
-	}
 
-	projectKey := cmdutil.FirstNonEmpty(opts.Project, ctxCfg.ProjectKey)
-	repoSlug := cmdutil.FirstNonEmpty(opts.Repo, ctxCfg.DefaultRepo)
-	if projectKey == "" || repoSlug == "" {
-		return fmt.Errorf("context must supply project and repo; use --project/--repo if needed")
-	}
+	switch host.Kind {
+	case "dc":
+		projectKey := cmdutil.FirstNonEmpty(opts.Project, ctxCfg.ProjectKey)
+		repoSlug := cmdutil.FirstNonEmpty(opts.Repo, ctxCfg.DefaultRepo)
+		if projectKey == "" || repoSlug == "" {
+			return fmt.Errorf("context must supply project and repo; use --project/--repo if needed")
+		}
 
-	client, err := cmdutil.NewDCClient(host)
-	if err != nil {
-		return err
-	}
+		// Inline comments are not supported for Data Center
+		if opts.FilePath != "" || opts.Line > 0 || opts.LineFrom > 0 {
+			return fmt.Errorf("inline comments (--file, --line, --line-from) are only supported for Bitbucket Cloud")
+		}
 
-	ctx, cancel := context.WithTimeout(cmd.Context(), 5*time.Second)
-	defer cancel()
+		client, err := cmdutil.NewDCClient(host)
+		if err != nil {
+			return err
+		}
 
-	if err := client.CommentPullRequest(ctx, projectKey, repoSlug, id, opts.Text); err != nil {
-		return err
-	}
+		ctx, cancel := context.WithTimeout(cmd.Context(), 5*time.Second)
+		defer cancel()
 
-	if _, err := fmt.Fprintf(ios.Out, "✓ Commented on pull request #%d\n", id); err != nil {
-		return err
+		if err := client.CommentPullRequest(ctx, projectKey, repoSlug, id, opts.Text); err != nil {
+			return err
+		}
+
+		if _, err := fmt.Fprintf(ios.Out, "✓ Commented on pull request #%d\n", id); err != nil {
+			return err
+		}
+		return nil
+
+	case "cloud":
+		workspace := cmdutil.FirstNonEmpty(opts.Workspace, ctxCfg.Workspace)
+		repoSlug := cmdutil.FirstNonEmpty(opts.Repo, ctxCfg.DefaultRepo)
+		if workspace == "" || repoSlug == "" {
+			return fmt.Errorf("context must supply workspace and repo; use --workspace/--repo if needed")
+		}
+
+		client, err := cmdutil.NewCloudClient(host)
+		if err != nil {
+			return err
+		}
+
+		ctx, cancel := context.WithTimeout(cmd.Context(), 5*time.Second)
+		defer cancel()
+
+		comment, err := client.CommentPullRequest(ctx, workspace, repoSlug, id, bbcloud.CommentPullRequestOptions{
+			Text:     opts.Text,
+			FilePath: opts.FilePath,
+			Line:     opts.Line,
+			LineFrom: opts.LineFrom,
+		})
+		if err != nil {
+			return err
+		}
+
+		payload := map[string]any{
+			"workspace": workspace,
+			"repo":      repoSlug,
+			"pr_id":     id,
+			"comment":   comment,
+		}
+
+		return cmdutil.WriteOutput(cmd, ios.Out, payload, func() error {
+			msg := fmt.Sprintf("✓ Commented on pull request #%d", id)
+			if opts.FilePath != "" {
+				if opts.LineFrom > 0 {
+					msg += fmt.Sprintf(" (%s lines %d-%d)", opts.FilePath, opts.LineFrom, opts.Line)
+				} else {
+					msg += fmt.Sprintf(" (%s line %d)", opts.FilePath, opts.Line)
+				}
+			}
+			_, err := fmt.Fprintln(ios.Out, msg)
+			return err
+		})
+
+	default:
+		return fmt.Errorf("unsupported host kind %q", host.Kind)
 	}
-	return nil
 }
 
 type checksOptions struct {

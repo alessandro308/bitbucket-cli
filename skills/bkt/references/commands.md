@@ -150,12 +150,21 @@ bkt pr edit <id> -t "Fix login bug" -b "Resolves session timeout issue"
 ```bash
 bkt pr approve <id>                       # Approve PR
 
-bkt pr comment <id> --text "LGTM"         # Add comment
+# Comments (general and inline)
+bkt pr comment <id> --text "LGTM"         # Add general comment
+bkt pr comment <id> --text "Fix typo" --file src/main.go --line 42                  # Cloud: Inline comment on line
+bkt pr comment <id> --text "Refactor" --file app.js --line-from 10 --line 20        # Cloud: Line range comment
 
 bkt pr merge <id>                         # Merge PR
 bkt pr merge <id> --message "merge: feature" --strategy fast-forward
 bkt pr merge <id> --close-source=false    # Keep source branch
 ```
+
+Comment options (Cloud only for inline comments):
+- `--text` — Comment text (required)
+- `--file` — File path for inline comment (Cloud only)
+- `--line` — Line number for inline comment (Cloud only, requires --file)
+- `--line-from` — Starting line for range comment (Cloud only, requires --file and --line)
 
 Merge options:
 - `--message` — Merge commit message

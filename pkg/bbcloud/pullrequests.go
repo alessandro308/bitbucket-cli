@@ -240,3 +240,88 @@ func (c *Client) UpdatePullRequest(ctx context.Context, workspace, repoSlug stri
 	}
 	return &pr, nil
 }
+
+// PullRequestComment represents a comment on a pull request.
+type PullRequestComment struct {
+	ID      int `json:"id"`
+	Content struct {
+		Raw    string `json:"raw"`
+		Markup string `json:"markup"`
+		HTML   string `json:"html"`
+	} `json:"content"`
+	User      *Account `json:"user"`
+	CreatedOn string   `json:"created_on"`
+	UpdatedOn string   `json:"updated_on"`
+	Links     struct {
+		HTML struct {
+			Href string `json:"href"`
+		} `json:"html"`
+		Self struct {
+			Href string `json:"href"`
+		} `json:"self"`
+	} `json:"links"`
+}
+
+// CommentPullRequestOptions configures PR comment creation.
+type CommentPullRequestOptions struct {
+	Text     string
+	FilePath string // Optional: file path for inline comment
+	Line     int    // Optional: line number for inline comment (requires FilePath)
+	LineFrom int    // Optional: starting line for range comment (requires FilePath and Line)
+}
+
+// CommentPullRequest creates a comment on a pull request.
+// For inline comments on specific file lines, set FilePath and Line in the options.
+func (c *Client) CommentPullRequest(ctx context.Context, workspace, repoSlug string, id int, opts CommentPullRequestOptions) (*PullRequestComment, error) {
+	if workspace == "" || repoSlug == "" {
+		return nil, fmt.Errorf("workspace and repository slug are required")
+	}
+	if strings.TrimSpace(opts.Text) == "" {
+		return nil, fmt.Errorf("comment text is required")
+	}
+
+	payload := map[string]any{
+		"content": map[string]any{
+			"raw": opts.Text,
+		},
+	}
+
+	// Add inline comment location if file and line are specified
+	if opts.FilePath != "" {
+		if opts.Line <= 0 {
+			return nil, fmt.Errorf("line number must be positive when file path is specified")
+		}
+
+		inline := map[string]any{
+			"path": opts.FilePath,
+			"to":   opts.Line,
+		}
+
+		// Add line range if LineFrom is specified
+		if opts.LineFrom > 0 {
+			if opts.LineFrom > opts.Line {
+				return nil, fmt.Errorf("line range start (%d) must be less than or equal to end (%d)", opts.LineFrom, opts.Line)
+			}
+			inline["from"] = opts.LineFrom
+		}
+
+		payload["inline"] = inline
+	}
+
+	path := fmt.Sprintf("/repositories/%s/%s/pullrequests/%d/comments",
+		url.PathEscape(workspace),
+		url.PathEscape(repoSlug),
+		id,
+	)
+
+	req, err := c.http.NewRequest(ctx, "POST", path, payload)
+	if err != nil {
+		return nil, err
+	}
+
+	var comment PullRequestComment
+	if err := c.http.Do(req, &comment); err != nil {
+		return nil, err
+	}
+	return &comment, nil
+}
