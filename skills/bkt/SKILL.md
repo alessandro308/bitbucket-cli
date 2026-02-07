@@ -1,6 +1,6 @@
 ---
 name: bkt
-description: Bitbucket CLI for Data Center and Cloud. Use when users need to manage repositories, pull requests, branches, issues, webhooks, or pipelines in Bitbucket. Supports inline PR comments on specific file lines (Cloud only). Triggers include "bitbucket", "bkt", "pull request", "PR", "repo list", "branch create", "inline comment", "file comment", "Bitbucket Data Center", "Bitbucket Cloud".
+description: Bitbucket CLI for Data Center and Cloud. Use when users need to manage repositories, pull requests, branches, issues, webhooks, or pipelines in Bitbucket. Triggers include "bitbucket", "bkt", "pull request", "PR", "repo list", "branch create", "Bitbucket Data Center", "Bitbucket Cloud", "keyring timeout".
 metadata:
   version: 1.0.5
   short-description: Bitbucket CLI for repos, PRs, branches
@@ -218,6 +218,7 @@ bkt pr list --json | jq '.pull_requests[0].title'
 
 - `BKT_CONFIG_DIR` — Config directory override
 - `BKT_ALLOW_INSECURE_STORE` — Allow file-based credential storage
+- `BKT_KEYRING_TIMEOUT` — Keyring operation timeout (for example `2m`)
 
 ## References
 
